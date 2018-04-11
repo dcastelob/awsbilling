@@ -1,5 +1,7 @@
 #!/bin/bash
-# Version 3
+# Objetivo: Extração de dados dos bilhetes da AWS para ações de avaliação de custo
+# Autor: Diego Castelo Branco
+# Criação: 2018.02.02
 
 function pivotable_UsageType()
 {
@@ -51,57 +53,6 @@ function pivotable_UsageType()
 	END {for (i in a0) {print a1[i],a2[i],a3[i],a4[i],a5[i],a6[i],a7[i],a8[i],a9[i],a10[i],a11[i],a12[i],a13[i],a14[i],a15[i],a16[i],a17[i],a18[i],a19[i],a20[i],a21[i],a22[i],a23[i],a24[i],a25[i],a26[i],a27[i],a28[i],a29[i],a30[i],a31[i],a32[i],a0[i] }}' table >> "$FILE_OUT"
 }
 
-function pivotableOld()
-{
-	FILE_IN="$1"
-	FILE_OUT="$2"
-
-	#Valor está no UnBlendedCost campo 21
-	# valor chave resourceId - Campo 22
-
-	cat "$FILE_IN" | sed 's/"//g' > table
-	HEADER=$(head -n1 table)
-	#head -n1 table > "$FILE_OUT"
-	echo "${HEADER};TOTAL" > "$FILE_OUT"
-
-	awk 'BEGIN {FS=OFS=";"} \
-	NR>1 \
-	{a0[$22]+=$21} \
-	{a1[$22]=$1} \
-	{a2[$22]=$2} \
-	{a3[$22]=$3} \
-	{a4[$22]=$4} \
-	{a5[$22]=$5} \
-	{a6[$22]=$6} \
-	{a7[$22]=$7} \
-	{a8[$22]=$8} \
-	{a9[$22]=$9} \
-	{a10[$22]=$10} \
-	{a11[$22]=$11} \
-	{a12[$22]=$12} \
-	{a13[$22]=$13} \
-	{a14[$22]=$14} \
-	{a15[$22]=$15} \
-	{a16[$22]=$16} \
-	{a17[$22]=$17} \
-	{a18[$22]=$18} \
-	{a19[$22]=$19} \
-	{a20[$22]=$20} \
-	{a21[$22]=$21} \
-	{a22[$22]=$22} \
-	{a23[$22]=$23} \
-	{a24[$22]=$24} \
-	{a25[$22]=$25} \
-	{a26[$22]=$26} \
-	{a27[$22]=$27} \
-	{a28[$22]=$28} \
-	{a29[$22]=$29} \
-	{a30[$22]=$30} \
-	{a31[$22]=$31} \
-	{a32[$22]=$32} \
-
-	END {for (i in a0) {print a1[i],a2[i],a3[i],a4[i],a5[i],a6[i],a7[i],a8[i],a9[i],a10[i],a11[i],a12[i],a13[i],a14[i],a15[i],a16[i],a17[i],a18[i],a19[i],a20[i],a21[i],a22[i],a23[i],a24[i],a25[i],a26[i],a27[i],a28[i],a29[i],a30[i],a31[i],a32[i],a0[i] }}' table >> "$FILE_OUT"
-}
 
 function pivotable()
 {
@@ -491,6 +442,9 @@ function extractFilesV2()
 	#FILE="$1"
 	FILE="322633204976-aws-billing-detailed-line-items-with-resources-and-tags-2018-02.csv"
 	
+	echo -e "\n[INFO] Iniciando o processo de extração de dados"
+	echo -e "\n[INFO] Arquivo:  \"$FILE\"\n"
+
 	### TRATAMENTO DO ARQUIVO CSV (arquivo de trabalho é o data.csv)
 	## retirando entuais pont-e-virgula
 #	cat "${FILE}" | sed "s/;/-/g" > data.tmp && mv data.tmp data.csv
@@ -509,6 +463,8 @@ function extractFilesV2()
 	FILE_EC2_EXT="1_AWS_BASE_EC2_EXTRA.csv"
 
 ### EXTRAINDO OS ARQUIVOS DE BASE PARA O EC2 ####
+
+	echo -e "\n[INFO] Extraindo dados de base\n"
 
 	### EC2 - Intancias Reservadas
 	OUT="$FILE_EC2_RI"
@@ -532,6 +488,7 @@ function extractFilesV2()
 
 
 	### FASE 2 - EXTRAINDO AS EMRs ###
+	echo -e "\n[INFO] Extraindo EC2-EMR\n"
 
 	OUT="2_AWS_EC2_EMR_EXTRA.csv"
     echo > "$OUT"  # Limpando o arquivo
@@ -562,6 +519,8 @@ function extractFilesV2()
 	
     
     ### FASE 3 - EXTRAINDO APENAS AS EC2 ###
+
+	echo -e "\n[INFO] Extraindo APENAS EC2\n"
 
 	OUT="3_AWS_EC2_ONLY_EXTRA.csv"
     echo > "$OUT"  # Limpando o arquivo
@@ -740,6 +699,8 @@ function extractFilesV2()
     tail -n +2 "5.1_AWS_S3.csv-pivot.csv" >> "$OUT"  && wc -l "$OUT"	
 #	tail -n +2 AWS_KUBE_ONLY_JUNTAS.csv >> "$OUT"
 #	tail -n +2 AWS_BANCOS_ONLY_JUNTAS.csv >> "$OUT"	
+
+	echo -e "\n[INFO] Tarefa concluida. Importar o arquivo \"$OUT\" para uma planilha.\n"
 
 }
 
